@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>WebSocket简单聊天室</title>
+    <meta charset="utf-8" name="viewport" content="width=device-width">
+    <script th:src="@{/webjars/jquery/3.3.1/jquery.min.js}"></script>
+    <link rel="stylesheet" th:href="@{/webjars/mdui/0.4.0/dist/css/mdui.css}">
+    <script th:src="@{/webjars/mdui/0.4.0/dist/js/mdui.js}"></script>
+
+    <script type="text/javascript" src="/js/chooseImg.js"  charset="utf-8"></script>
+    <script type="text/javascript" src="/js/paste.js"  charset="utf-8"></script>
+    <script type="text/javascript" src="/js/cursorPosition.js"  charset="utf-8"></script>
+
+</head>
+<body class="mdui-theme-primary-indigo mdui-theme-accent-pink">
+
+<div class="mdui-container">
+    <div class="mdui-toolbar mdui-color-theme">
+        <a class="mdui-btn mdui-btn-icon"><i class="mdui-icon material-icons">menu</i></a>
+        <span class="mdui-typo-title">简单聊天室</span>
+        <div class="mdui-toolbar-spacer"></div>
+        <a class="mdui-btn mdui-btn-icon" href="https://www.jianshu.com/p/964370d9374e" target="_blank"><i
+                class="mdui-icon material-icons">search</i></a>
+        <a class="mdui-btn mdui-btn-icon" th:href="@{/}"><i
+                class="mdui-icon material-icons">exit_to_app</i></a>
+        <a class="mdui-btn mdui-btn-icon"><i class="mdui-icon material-icons">more_vert</i></a>
+    </div>
+</div>
+
+<div>
+    <div class="mdui-container container_text">
+
+        <div class="mdui-row">
+            <div class="mdui-col-xs-12 mdui-col-sm-6">
+                <div class="mdui-col-xs-12 mdui-col-sm-10">
+                    <div class="mdui-textfield-floating-label" style="margin-top:15px">
+                        <i class="mdui-icon material-icons">欢迎：</i>
+                        <i class="mdui-icon" id="username" th:text="${username}"></i>
+                        <div id="toUsername">
+                        <i class="mdui-icon" id="chatMes"></i>
+                            <!--"正在和 <font face=\"楷体\">" + toUserName + "</font>聊天"-->
+                        </div>
+                    </div>
+                </div>
+                <div class="mdui-col-xs-12 mdui-col-sm-10">
+                    <div class="mdui-textfield mdui-textfield-floating-label">
+                        <i class="mdui-icon material-icons">textsms&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</i>
+                        <label class="mdui-textfield-label">发送内容</label>
+
+                        <!-- 测试多表情输入 -->
+                        <div class="html-editor" contenteditable="true" id="msg">
+                        </div>
+
+
+                        <!-- 原始输入框 -->
+                        <!--<input class="mdui-textfield-input" id="msg"/>-->
+
+                    </div>
+                    <div class="mdui-container" style="padding:20px 35px">
+                        <button class="mdui-btn mdui-color-theme-accent mdui-ripple"
+                                onclick="sendMsgToServer()">发送 (enter)
+                        </button>
+                        <button class="mdui-btn mdui-color-theme mdui-ripple"
+                                onclick="clearMsg()">清屏
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mdui-col-xs-6 mdui-col-sm-5" style="padding:10px 0">
+                <div class="mdui-chip">
+                    <span class="mdui-chip-icon mdui-color-blue">
+                        <i class="mdui-icon material-icons">&#xe420;</i></span>
+                    <span class="mdui-chip-title">聊天内容</span>
+                    <div class="message-container">
+                        <ul class="mdui-list" id="container">
+                            <li class="mdui-list-item mdui-ripple"><div class="mdui-list-item-content"><div class="mdui-list-item-text mdui-list-item-two-line">"张三":"这是初始信息"</div></div></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="mdui-chip">
+                    <span class="mdui-chip-icon mdui-color-blue">
+                        <i class="mdui-icon material-icons">face</i></span>
+                    <span class="mdui-chip-title">在线列表</span>
+                    <!--<span class="mdui-chip-title chat-num">0</span>-->
+
+                    <div class="userlist-container">
+                        <ul class="mdui-list" id="userlist">
+                            <!--<li class="mdui-list-item mdui-ripple"><a onclick='showChat("张三")'>张三</a></li>-->
+                        </ul>
+                    </div>
+                </div>
+                <div class="mdui-chip">
+                    <span class="mdui-chip-icon mdui-color-blue">
+                    <i class="mdui-icon material-icons">&#xe192;</i></span>
+                    <span class="mdui-chip-title">历史记录</span>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+
+    let username;
+    let toUserName;
+    let cursorPosition = 0
+
+
+    // 发起ajax请求获取username
+    $(function () {
+        $.ajax({
+            uri: "getusername",
+            success: function (res) {
+                res = this.username;
+            },
+            async: false
+        });
+    })
+
+    // 创建webSocket对象
+    let ws = new WebSocket("ws://localhost:8080/chat");
+    // 绑定webSocket事件
+    //  连接建立时触发
+    ws.onopen = function () {
+        // 在建立连接后需要做什么事情
+    }
+    // 客户端接收服务端数据时触发
+    ws.onmessage = function (evt) {
+        // 获取服务端推送过来的消息
+        let dataStr = evt.data;
+        // 将dataStr转换为json对象
+        let res = JSON.parse(dataStr);
+        if (res.type === 0){
+            // 系统消息
+            let names = res.content;
+            // 好友列表展示
+            let userlist = "";
+            for (let name of  names) {
+                if (username != name) {
+                    userlist += "<li class=\"mdui-list-item mdui-ripple\"><a onclick='showChat(\"" + name + "\")'> " + name + "</a></li>"
+                }
+            }
+            // 渲染好友列表
+            $("#userlist").html(userlist);
+        } else if (res.type === 1){
+            // 单发消息
+            // 将服务端推送的数据进行渲染
+            // containerStr: " <li class="mdui-list-item mdui-ripple"><div class="mdui-list-item-content"><div class="mdui-list-item-text mdui-list-item-two-line">wr:你好 qe</div></div></li>"
+            let containerStr = "";
+            containerStr = " <li class=\"mdui-list-item mdui-ripple\"><div class=\"mdui-list-item-content\"><div class=\"mdui-list-item-text mdui-list-item-two-line\">" + res.fromUser + ":" + res.content + "</div></div></li>"
+
+            $("#container").append(containerStr);
+
+        } else {
+            // 群发消息
+
+        }
+    }
+    // 通信发生错误时触发
+    ws.onerror = function () {
+        
+    }
+    // 连接关闭时触发
+    ws.onclose = function () {
+        
+    }
+
+
+
+    function showChat(name) {
+        toUserName = name;
+        // 显示正在和谁聊天
+        $("#chatMes").html("正在和 <font face=\"楷体\">" + toUserName + "</font>聊天")
+    }
+
+    /**
+     * 通过WebSocket对象发送消息给服务端
+     */
+    function sendMsgToServer() {
+        var $message = $('#msg');
+        console.log("======"+ $message);
+        console.log("======"+ $message.val());
+        console.log("======"+ $message.Array);
+        console.log("======"+ $message.find('img')[0].src);
+        // 剪贴板图片进行base64编码后长度  1523   76003
+        if ($message.text()) {
+            let fromUser = $('#username').text()
+            var json = {"fromUser":fromUser, "toUser": toUserName, "content": $message.text()}
+            ws.send(JSON.stringify(json))
+            $message.text(null);
+        }
+
+    }
+
+    const editor = document.querySelector('.html-editor')
+    // 添加监听事件  在节点的keyup和click事件记录光标位置
+    editor.addEventListener('click', async (e) => {
+        cursorPosition = getCursorPosition(editor)
+    })
+    editor.addEventListener('keyup', async (e) => {
+        cursorPosition = getCursorPosition(editor)
+    })
+    // 任何通过“复制”或者control + c所复制的内容（包括屏幕截图）都会存储在剪贴板，在粘贴的时候可以在输入框的onpaste事件里面监听
+    // 在控制台输出剪贴板的base64编码，   后将其剪贴板内容正确的插入到输入框的光标位置
+    // 对于插入内容，使用  insertText和insertImages
+    editor.addEventListener('paste', async (e) => {
+        // 读取剪贴板的内容
+        const result = await onPase(e)
+        const imgRegx = /^data:image\/png;base64,/
+        const emojiRule = /\uD83C[\uDF00-\uDFFF]|\uD83D[\uDC00-\uDE4F]/g;
+        // 如果是图片格式（base64），则通过构造range的办法把<img>标签插入正确的位置
+        // 如果是文本格式，则通过document.execCommand('insertText')方法把文本插入
+        if (imgRegx.test(result)) {
+            const sel = window.getSelection()  // 获得一个获得一个 Selection 对象
+            if (sel && sel.rangeCount === 1 && sel.isCollapsed) {
+                const range = sel.getRangeAt(0)
+                const img = new Image()
+                img.src = result
+                range.insertNode(img)
+                range.collapse(false)
+                sel.removeAllRanges()
+                sel.addRange(range)
+            }
+        } else if (emojiRule.test(result)){
+            insertEmoji(result)
+        } else {
+            document.execCommand('insertText', false, result)
+        }
+        // 在控制台打印出所截屏图片的base64编码
+        console.log(result)
+    })
+
+
+
+    // 记录下光标位置  调用insertEmoji（）方法插入emoji字符
+    function insertEmoji (emoji)
+    {
+        const text = editor.innerHTML
+        // 插入 emoji
+        editor.innerHTML = text.slice(0, cursorPosition) + emoji + text.slice(cursorPosition, text.length)
+        // 光标位置后挪一位，以保证在刚插入的 emoji 后面
+        setCursorPosition(editor, this.cursorPosition + 1)
+        // 更新本地保存的光标位置变量（注意 emoji 占两个字节大小，所以要加1）
+        cursorPosition = getCursorPosition(editor) + 1 //  emoji 占两位
+    }
+
+    //  清屏
+    function clearMsg() {
+        $(".message-container").empty();
+    }
+
+    // 使用ENTER发送消息
+    document.onkeydown = function (event) {
+        var e = event || window.event || arguments.callee.caller.arguments[0];
+        e.keyCode === 13 && sendMsgToServer();
+    };
+
+
+</script>
+
+</body>
+</html>

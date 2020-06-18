@@ -1,0 +1,37 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: jianyan-bootsocket
+  thymeleaf: false
+  datasource:
+    # 使用阿里的Druid连接池
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.jdbc.Driver
+    # 填写你数据库的url、登录名、密码和数据库名
+    url: jdbc:mysql://localhost:3306/jianyan_socket?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=UTC
+    username: root
+    password: system
+    druid:
+      # 连接池的配置信息
+      # 初始化大小，最小，最大
+      initial-size: 5
+      min-idle: 5
+      maxActive: 20
+      # 配置获取连接等待超时的时间
+      maxWait: 60000
+
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/**Mapper.xml
+  typeAliasesPackage: com.jianyan.entity
+  global-config:
+    #主键类型 0:数据库ID自增, 1:用户输入ID,2:全局唯一ID (数字类型唯一ID), 3:全局唯一ID UUID
+    #id-type: 3
+    #字段策略(拼接sql时用于判断属性值是否拼接) 0:忽略判断,1:非NULL判断,2:非空判断
+    field-strategy: 2
+    #驼峰下划线转换含查询column及返回column(column下划线命名create_time，返回java实体是驼峰命名createTime，开启后自动转换否则保留原样)
+    db-column-underline: true
+    #是否动态刷新mapper
+    refresh-mapper: false
+
+
