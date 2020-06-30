@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.jianyan.entity.Message;
 
 public class MessageUtils {
-    public static String getMessage(String fromUser, String toUser, Object content, Integer type){
+    public static String getMessage(String fromUser, String toUser, Object content, String image ,Integer type){
         try {
             Message message = new Message();
             if ("" == fromUser && fromUser == null) {
@@ -14,6 +14,7 @@ public class MessageUtils {
             }
             message.setToUser(toUser);
             message.setContent(content);
+            message.setImage(image);
             message.setType(type);
             return JSON.toJSONString(message);
         } catch (Exception e) {

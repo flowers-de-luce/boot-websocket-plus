@@ -74,7 +74,7 @@
                     <span class="mdui-chip-title">聊天内容</span>
                     <div class="message-container">
                         <ul class="mdui-list" id="container">
-                            <li class="mdui-list-item mdui-ripple"><div class="mdui-list-item-content"><div class="mdui-list-item-text mdui-list-item-two-line">"张三":"这是初始信息"</div></div></li>
+                            <li class="mdui-list-item mdui-ripple"><div class="mdui-list-item-content"><div class="mdui-list-item-text mdui-list-item-three-line">"张三":"这是初始信息"</div></div></li>
                         </ul>
                     </div>
                 </div>
@@ -151,7 +151,12 @@
             // 将服务端推送的数据进行渲染
             // containerStr: " <li class="mdui-list-item mdui-ripple"><div class="mdui-list-item-content"><div class="mdui-list-item-text mdui-list-item-two-line">wr:你好 qe</div></div></li>"
             let containerStr = "";
-            containerStr = " <li class=\"mdui-list-item mdui-ripple\"><div class=\"mdui-list-item-content\"><div class=\"mdui-list-item-text mdui-list-item-two-line\">" + res.fromUser + ":" + res.content + "</div></div></li>"
+            containerStr = " <li class=\"mdui-list-item mdui-ripple\"><div class=\"mdui-list-item-content\"><div class=\"mdui-list-item-text mdui-list-item-two-line\">"
+                           +"<b>" +  res.fromUser + "</b>"
+                           + " : "
+                           + res.content
+                           + "<img src='"+ res.image + "'/> "
+                           + "</div></div></li>"
 
             $("#container").append(containerStr);
 
@@ -182,18 +187,17 @@
      */
     function sendMsgToServer() {
         var $message = $('#msg');
-        console.log("======"+ $message);
-        console.log("======"+ $message.val());
-        console.log("======"+ $message.Array);
-        console.log("======"+ $message.find('img')[0].src);
+
+        // console.log("======"+ $message.find('img')[0].src);
         // 剪贴板图片进行base64编码后长度  1523   76003
-        if ($message.text()) {
+        // if ($message.text() || $message.find('img')[0].src) {
+        if ($message.text() || $message.find('img')) {
             let fromUser = $('#username').text()
-            var json = {"fromUser":fromUser, "toUser": toUserName, "content": $message.text()}
+            var image = $message.find('img')[0]  ? $message.find('img')[0].src  : "";
+            var json = {"fromUser":fromUser, "toUser": toUserName, "content": $message.text(), "image": image}
             ws.send(JSON.stringify(json))
             $message.text(null);
         }
-
     }
 
     const editor = document.querySelector('.html-editor')

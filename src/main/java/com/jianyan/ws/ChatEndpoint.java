@@ -50,7 +50,7 @@ public class ChatEndpoint {
 
         // 将当前在线用户的用户名推送给所有的客户端
         // 1.获取消息
-        String message = MessageUtils.getMessage("system", null, getNames(), MessageEnum.SYSTEM.getType());
+        String message = MessageUtils.getMessage("system", null, getNames(),null, MessageEnum.SYSTEM.getType());
         // 2.调用方法进行系统消息的推送
         broadcastAllUsers(message);
     }
@@ -82,13 +82,16 @@ public class ChatEndpoint {
              String username = messageWS.getFromUser();
             // 获取要消息接受者
             String toUser = messageWS.getToUser();
-            // 获取消息数据
+            // 获取消息数据文本
             String content = (String) messageWS.getContent();
+            // 获取消息数据图片
+            String image = (String)messageWS.getImage();
+
             // 获取当前登录的用户
             String usernameSeesion = (String) httpSession.getAttribute("username");
 
             // 获取推送给指定用户的消息格式的数据
-            String messageSend = MessageUtils.getMessage(username, toUser, content, MessageEnum.USER.getType());
+            String messageSend = MessageUtils.getMessage(username, toUser, content,image,  MessageEnum.USER.getType());
             // 发送方处理数据
             onlineUsers.get(username).session.getBasicRemote().sendText(messageSend);
             // 接收方处理数据

@@ -10,8 +10,7 @@ import lombok.Data;
 @TableName("message")
 public class Message implements Serializable {
 
-    private static final long serialVersionUID = 1L;
-
+    private static final long serialVersionUID = -8448483940454479858L;
     @TableId(value = "id", type = IdType.ID_WORKER)
     private long id;
 
@@ -20,6 +19,8 @@ public class Message implements Serializable {
     private String toUser;
 
     private Object content;
+
+    private String image;
 
     private Integer type;
 
